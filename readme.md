@@ -1,4 +1,5 @@
 # PeerWatch
+> This repository only contains the files for PeerWatch's frontend. You may access the backend repository [here](https://github.com/Tomashiwa/PeerWatch-backend).
 
 ## Overview
 
@@ -6,38 +7,16 @@ This project is a web application to allow users to watch YouTube videos togethe
 
 ![image](https://user-images.githubusercontent.com/15318860/140597009-ae8ed7e9-ea93-4d7d-b3f8-63898eabcde0.png)
 
-Production Website: http://peerwatch.ap-southeast-1.elasticbeanstalk.com/
+Production Website: https://peerwatch.netlify.app/
 
-Project Report: [G37 PeerWatch](37-FinalReport-1.pdf)
+**Backend is hosted on a Heroku's free-tier dyno, delay is expected when interacting with backend**
 
 ##### Installation Guide
 
-Pre-requisites: Node 14.5.3, Redis 5.0.7, MySQL 8.0.26, MySQL Workbench
-
 1. Clone this repo.
-2. Run `npm run install-all` at root directory
-3. Create a `.env` file at root directory with the following template (Fill in the fields with `XXX` as its value)
-
-```
-ACCESS_SECRET=XXX
-RESET_SECRET=XXX
-EMAIL_USER=peerwatchteam@gmail.com
-EMAIL_PASS=cs3219team37
-DB_HOST=XXX
-DB_USER=XXX
-DB_PASS=XXX
-DB_PORT=3306
-LOCAL_DB_HOST=localhost
-LOCAL_DB_USER=root
-LOCAL_DB_PASS=password
-LOCAL_DB_PORT=3306
-```
-
-4. Start up a local MySQL database that uses the credential stated in `.env`
-5. Open up MySQL Workbench, connect to your local database and run the SQL scripts in `./sql` to construct the necessary tables
-6. Start up a local Redis server by running `redis-server` in a terminal of your choice
-7. Run `npm run dev`
-8. Access the application through http://localhost:3000
+2. Run `npm install` at root directory
+3. Run `npm run start`
+4. Access the application through http://localhost:3000
 
 ##### Technology stack
 
