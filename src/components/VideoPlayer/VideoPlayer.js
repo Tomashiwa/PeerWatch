@@ -31,6 +31,7 @@ function VideoPlayer({
 	finishCallback,
 }) {
 	const [isPlaying, setIsPlaying] = useState(false);
+	const [isMuted, setIsMuted] = useState(true);
 	const [buffererId, setBuffererId] = useState(UNAVALIABLE);
 	const [isInitialSync, setIsInitialSync] = useState(true);
 	const [playbackRate, setPlaybackRate] = useState(1);
@@ -264,17 +265,24 @@ function VideoPlayer({
 		},
 		[socket, bufferStartCallback]
 	);
-	const synchroniseSettings = () => {
+	const synchroniseSettings = useCallback(() => {
+		if (!user || !socket) return;
+
 		if (!user.isHost) {
 			socket.emit("REQUEST_SETTINGS", roomId);
 		} else {
 			setIsPlaying(true);
 		}
-	};
+	}, [user, socket, roomId]);
+
+	useEffect(() => {
+		synchroniseSettings();
+	}, [user, synchroniseSettings]);
 
 	// Callback when the player completed initial loading and ready to go
 	const readyCallback = (player) => {
 		console.log("Ready to play");
+		isMuted && setIsMuted(false);
 
 		// Attach callback for change in playback rate
 		player.getInternalPlayer().addEventListener("onPlaybackRateChange", rateChangeCallback);
@@ -345,7 +353,7 @@ function VideoPlayer({
 			playing={isPlaying}
 			playbackRate={playbackRate}
 			controls
-			muted
+			muted={isMuted}
 			config={{
 				youtube: {
 					playerVars: {
