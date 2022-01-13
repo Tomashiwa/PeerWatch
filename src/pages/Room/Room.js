@@ -1,7 +1,6 @@
 import React, { Suspense, useState, useEffect, useCallback, useContext } from "react";
 import { useHistory, useParams } from "react-router";
 import { io } from "socket.io-client";
-import { CircularProgress, Typography } from "@mui/material";
 import axios from "axios";
 
 import { SERVER_URL, FALLBACK_VID } from "../../util/url";
@@ -13,6 +12,7 @@ import UserContext from "../../components/Context/UserContext";
 import RoomDrawer from "../../components/RoomDrawer/RoomDrawer";
 import { RoomPageWrapper, RoomContainerWrapper } from "./Room.styled";
 import TimeoutModal from "../../components/TimeoutModal/TimeoutModal";
+import Spinner from "../../components/Spinner/Spinner";
 
 const VideoPlayer = React.lazy(() => import("../../components/VideoPlayer/VideoPlayer"));
 
@@ -198,10 +198,7 @@ function Room() {
 					<div className="room-res-wrapper">
 						{isWaiting && (
 							<div className="room-join-fallback">
-								<CircularProgress color="warning" />
-								<Typography align="center" variant="h6">
-									Joining...
-								</Typography>
+								<Spinner message="Joining..." />
 							</div>
 						)}
 						<Suspense>

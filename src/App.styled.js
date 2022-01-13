@@ -10,6 +10,7 @@ const AppWrapper = styled.div`
 	background: ${(props) => props.theme.lightGray};
 
 	.app-content {
+		height: 100%;
 		overflow: auto;
 	}
 

@@ -1,17 +1,10 @@
 import React from "react";
-import { Typography, CircularProgress } from "@mui/material";
-import { PanelWrapper, PanelSpinner } from "./Panel.styled";
+import { PanelWrapper } from "./Panel.styled";
+import Spinner from "../Spinner/Spinner";
 
 function Panel({ rowGap, children, isLoading = false, loadMsg = "Loading..." }) {
 	if (isLoading) {
-		return (
-			<PanelSpinner>
-				<CircularProgress color="warning" />
-				<Typography align="center" variant="h6">
-					{loadMsg}
-				</Typography>
-			</PanelSpinner>
-		);
+		return <Spinner message={loadMsg} />;
 	}
 	return <PanelWrapper rowGap={rowGap}>{children}</PanelWrapper>;
 }

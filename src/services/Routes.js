@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Switch, Route } from "react-router-dom";
 
 import UserContext from "../components/Context/UserContext";
+import Spinner from "../components/Spinner/Spinner";
 
 const Landing = React.lazy(() => import("../pages/Landing/Landing"));
 const Room = React.lazy(() => import("../pages/Room/Room"));
@@ -15,6 +16,10 @@ const AccountReset = React.lazy(() => import("../pages/AccountReset/AccountReset
 
 function Routes() {
 	const { userInfo } = useContext(UserContext);
+
+	if (!userInfo.isLoaded) {
+		return <Spinner message="Loading..." />;
+	}
 
 	return (
 		<Switch>
