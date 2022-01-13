@@ -53,7 +53,7 @@ export const RoomContainerWrapper = styled.div`
 	}
 
 	.room-sidebar {
-		height: 80vh;
+		height: 80%;
 
 		display: grid;
 		grid-template-rows: auto 4fr 8fr auto;
