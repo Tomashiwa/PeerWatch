@@ -1,6 +1,7 @@
 import styled from "styled-components";
 
 const ChatboxWrapper = styled.div`
+	min-height: 0;
 	background: ${(props) => props.theme.darkGray};
 	padding: 10px;
 

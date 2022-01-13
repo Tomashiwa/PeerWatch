@@ -2,15 +2,15 @@ import styled from "styled-components";
 
 export const RoomPageWrapper = styled.div`
 	background: ${(props) => props.theme.lightGray};
-	min-height: 100%;
-	height: auto;
+	height: 100%;
 
 	display: grid;
 	grid-template-columns: auto;
 	place-items: center;
+	// justify-content: flex-start;
+	// align-items: flex-start;
 
 	@media (max-width: 1000px) {
-		height: 100%;
 		justify-content: stretch;
 		align-items: center;
 	}
@@ -18,6 +18,8 @@ export const RoomPageWrapper = styled.div`
 
 export const RoomContainerWrapper = styled.div`
 	width: 98%;
+	height: 100%;
+	min-height: 0;
 
 	display: grid;
 	grid-template-rows: none;
