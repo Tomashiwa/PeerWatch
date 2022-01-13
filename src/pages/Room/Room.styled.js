@@ -7,8 +7,6 @@ export const RoomPageWrapper = styled.div`
 	display: grid;
 	grid-template-columns: auto;
 	place-items: center;
-	// justify-content: flex-start;
-	// align-items: flex-start;
 
 	@media (max-width: 1000px) {
 		justify-content: stretch;
