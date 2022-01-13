@@ -1,7 +1,18 @@
 import React from "react";
-import { PanelWrapper } from "./Panel.styled";
+import { Typography, CircularProgress } from "@mui/material";
+import { PanelWrapper, PanelSpinner } from "./Panel.styled";
 
-function Panel({ rowGap, children }) {
+function Panel({ rowGap, children, isLoading = false, loadMsg = "Loading..." }) {
+	if (isLoading) {
+		return (
+			<PanelSpinner>
+				<CircularProgress color="warning" />
+				<Typography align="center" variant="h6">
+					{loadMsg}
+				</Typography>
+			</PanelSpinner>
+		);
+	}
 	return <PanelWrapper rowGap={rowGap}>{children}</PanelWrapper>;
 }
 

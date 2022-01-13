@@ -17,11 +17,15 @@ function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback })
 	const passRef = useRef(null);
 	const [generalFlag, setGeneralFlag] = useState(false);
 	const [generalError, setGeneralError] = useState("");
+	const [isLoading, setIsLoading] = useState(false);
 	const { setUserInfo } = useContext(UserContext);
+
+	const loginMsg = "Logging in...";
 
 	const login = (e) => {
 		e.preventDefault();
 
+		setIsLoading(true);
 		setGeneralFlag(false);
 
 		axios
@@ -30,6 +34,8 @@ function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback })
 				password: passRef.current.value,
 			})
 			.then((res) => {
+				setIsLoading(false);
+
 				// Add to context
 				const newUserInfo = {
 					userId: res.data.userId,
@@ -47,6 +53,7 @@ function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback })
 			})
 			.catch((err) => {
 				if (err.response) {
+					setIsLoading(false);
 					setGeneralFlag(true);
 					setGeneralError(err.response.data.message);
 				}
@@ -54,7 +61,7 @@ function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback })
 	};
 
 	return (
-		<Panel rowGap="1em">
+		<Panel rowGap="1em" isLoading={isLoading} loadMsg={loginMsg}>
 			<FormWrapper onSubmit={login}>
 				{generalFlag && <p style={{ color: "red" }}> {generalError} </p>}
 
