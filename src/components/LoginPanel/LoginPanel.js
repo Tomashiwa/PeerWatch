@@ -12,6 +12,8 @@ import {
 import UserContext from "../Context/UserContext";
 import { SERVER_URL } from "../../util/url";
 
+const SPINNER_MSG_LOGIN = "Logging in...";
+
 function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback }) {
 	const emailRef = useRef(null);
 	const passRef = useRef(null);
@@ -19,8 +21,6 @@ function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback })
 	const [generalError, setGeneralError] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const { setUserInfo } = useContext(UserContext);
-
-	const loginMsg = "Logging in...";
 
 	const login = (e) => {
 		e.preventDefault();
@@ -61,7 +61,7 @@ function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback })
 	};
 
 	return (
-		<Panel rowGap="1em" isLoading={isLoading} loadMsg={loginMsg}>
+		<Panel rowGap="1em" isLoading={isLoading} loadMsg={SPINNER_MSG_LOGIN}>
 			<FormWrapper onSubmit={login}>
 				{generalFlag && <p style={{ color: "red" }}> {generalError} </p>}
 
