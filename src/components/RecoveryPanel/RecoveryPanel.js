@@ -11,44 +11,43 @@ import {
 import { SERVER_URL } from "../../util/url";
 
 const UNAUTH_ERROR_CODE = 401;
+const SPINNER_MSG_RECOVERING = "Recovering...";
 
 function RecoveryPanel({ sendCallback, cancelCallback }) {
 	const emailRef = useRef(null);
 	const [unauthFlag, setUnauthFlag] = useState(false);
 	const [unauthError, setUnauthError] = useState("");
 	const [generalFlag, setGeneralFlag] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const resetErrors = () => {
 		setGeneralFlag(false);
 		setUnauthFlag(false);
 	};
 
-	const send = (e) => {
+	const send = async (e) => {
 		e.preventDefault();
-
-		resetErrors();
-
-		axios
-			.post(`${SERVER_URL}/api/auth/recover`, {
+		try {
+			setIsLoading(true);
+			resetErrors();
+			await axios.post(`${SERVER_URL}/api/auth/recover`, {
 				email: emailRef.current.value,
-			})
-			.then((res) => {
-				sendCallback();
-			})
-			.catch((err) => {
-				if (err.response) {
-					if (err.response.status === UNAUTH_ERROR_CODE) {
-						setUnauthFlag(true);
-						setUnauthError(err.response.data.message);
-					} else {
-						setGeneralFlag(true);
-					}
-				}
 			});
+			sendCallback();
+		} catch (err) {
+			if (err.response?.status === UNAUTH_ERROR_CODE) {
+				setUnauthFlag(true);
+				setUnauthError(err.response.data.message);
+			} else {
+				setGeneralFlag(true);
+			}
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	return (
-		<Panel rowGap="1em">
+		<Panel rowGap="1em" isLoading={isLoading} loadMsg={SPINNER_MSG_RECOVERING}>
 			<Typography variant="h5">Password Recovery</Typography>
 			<Typography variant="body1">
 				Please provide the email address you registered with down below. We will be sending
