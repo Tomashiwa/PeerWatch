@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactPlayer from "react-player/youtube";
 import { SERVER_URL } from "../../util/url";
+import usePrevious from "../../hooks/usePrevious";
 
 const UNAVALIABLE = -1;
 const THRESHOLD_SYNC = 1;
@@ -39,6 +40,8 @@ function VideoPlayer({
 	const [debouncedSetPlaying] = useState(() => debounce(setIsPlaying, DELAY_DEBOUNCED_PLAYING));
 
 	const playerRef = useRef(null);
+
+	const prevUser = usePrevious(user);
 
 	// Synchronize to the given timing
 	const syncTo = useCallback(
@@ -276,8 +279,10 @@ function VideoPlayer({
 	}, [user, socket, roomId]);
 
 	useEffect(() => {
-		synchroniseSettings();
-	}, [user, synchroniseSettings]);
+		if (prevUser && Object.entries(prevUser).length === 0) {
+			synchroniseSettings();
+		}
+	}, [prevUser, synchroniseSettings]);
 
 	// Callback when the player completed initial loading and ready to go
 	const readyCallback = (player) => {
