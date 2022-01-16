@@ -41,9 +41,9 @@ function VideoPlayer({
 	const playerRef = useRef(null);
 
 	// Synchronize to the given timing
-	const syncTo = useCallback(
+	const isDesync = useCallback(
 		(timing) => {
-			if (
+			return (
 				socket &&
 				!isWaiting &&
 				isPlaying &&
@@ -51,11 +51,17 @@ function VideoPlayer({
 				buffererId === UNAVALIABLE &&
 				timing !== UNAVALIABLE &&
 				Math.abs(playerRef.current.getCurrentTime() - timing) > THRESHOLD_SYNC
-			) {
+			);
+		},
+		[socket, buffererId, isWaiting, isPlaying]
+	);
+	const syncTo = useCallback(
+		(timing) => {
+			if (isDesync(timing)) {
 				playerRef.current.seekTo(timing, "seconds");
 			}
 		},
-		[isPlaying, buffererId, socket, isWaiting]
+		[isDesync]
 	);
 
 	// Initialize player with an URL
@@ -90,19 +96,22 @@ function VideoPlayer({
 		},
 		[setRoomInfo]
 	);
-	useEffect(() => {
-		if (socket && roomInfo.url) {
-			axios
-				.put(`${SERVER_URL}/api/rooms/url`, { roomId, url: roomInfo.url })
-				.then((res) => {
-					setIsInitialSync(true);
-					socket.emit("SEND_URL", roomId, roomInfo.url);
-				})
-				.catch((err) => {
-					console.error(err);
-				});
+	const distributeUrl = useCallback(async () => {
+		try {
+			if (socket && roomInfo.url) {
+				// Update room's URL in DB
+				await axios.put(`${SERVER_URL}/api/rooms/url`, { roomId, url: roomInfo.url });
+
+				setIsInitialSync(true);
+
+				// Distrbute new URL to all users in the room
+				socket.emit("SEND_URL", roomId, roomInfo.url);
+			}
+		} catch (err) {
+			console.error(err);
 		}
-	}, [socket, roomId, roomInfo.url, setRoomInfo]);
+	}, [socket, roomId, roomInfo.url]);
+	useEffect(() => distributeUrl(), [distributeUrl]);
 
 	// Synchronize user's timing
 	const receiveTiming = useCallback(

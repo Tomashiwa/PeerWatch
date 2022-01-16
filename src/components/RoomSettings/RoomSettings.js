@@ -23,40 +23,47 @@ function RoomSettings({ roomId, capacity, users, kickCallback, saveCallback }) {
 		setOpen(false);
 	};
 
-	const save = () => {
-		const newCapacity = parseInt(capacityRef.current.value);
-		if (isNaN(newCapacity)) {
-			setError("");
-		} else if (newCapacity <= 0 || newCapacity > 15) {
-			setError(ERROR_MSG_EXCEED_RANGE);
-			return;
-		} else if (newCapacity < users.length) {
-			setError(ERROR_MSG_LOWER_THAN_EXISTING);
-			return;
-		} else {
-			setError("");
-			axios
-				.put(`${SERVER_URL}/api/rooms/capacity`, { roomId, capacity: newCapacity })
-				.then((res) => {})
-				.catch((err) => {
-					console.log(err);
-				});
+	const updateCapacity = async (roomId, capacity) => {
+		try {
+			await axios.put(`${SERVER_URL}/api/rooms/capacity`, { roomId, capacity });
+		} catch (err) {
+			console.error(err);
 		}
+	};
+	const updateSettings = async (settings) => {
+		try {
+			await axios.put(`${SERVER_URL}/api/rooms/settings`, settings);
+		} catch (err) {
+			console.error(err);
+		}
+	};
+	const save = async () => {
+		try {
+			const newCapacity = parseInt(capacityRef.current.value);
+			if (isNaN(newCapacity)) {
+				setError("");
+			} else if (newCapacity <= 0 || newCapacity > 15) {
+				setError(ERROR_MSG_EXCEED_RANGE);
+				return;
+			} else if (newCapacity < users.length) {
+				setError(ERROR_MSG_LOWER_THAN_EXISTING);
+				return;
+			} else {
+				setError("");
+				await updateCapacity(roomId, newCapacity);
+			}
 
-		const newSettings = {
-			roomId,
-			users: currUsers,
-		};
-		axios
-			.put(`${SERVER_URL}/api/rooms/settings`, newSettings)
-			.then((res) => {
-				saveCallback(newCapacity, currUsers);
-			})
-			.catch((err) => {
-				console.log(err);
-			});
+			const newSettings = {
+				roomId,
+				users: currUsers,
+			};
+			await updateSettings(newSettings);
 
-		closeModal();
+			saveCallback(newCapacity, currUsers);
+			closeModal();
+		} catch (err) {
+			console.error(err);
+		}
 	};
 
 	useEffect(() => {
