@@ -1,5 +1,5 @@
 import { Typography } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useHistory } from "react-router";
 import Panel from "../Panel/Panel";
 import axios from "axios";
@@ -35,12 +35,16 @@ function AccountResetPanel() {
 		setRepeatPassFlag(false);
 	};
 
-	useEffect(() => {
-		const config = { headers: { Authorization: `Bearer ${resetToken}` } };
-		axios.post(`${SERVER_URL}/api/auth/authreset`, { rid: rid }, config).catch((err) => {
+	const authResetToken = useCallback(async () => {
+		try {
+			const config = { headers: { Authorization: `Bearer ${resetToken}` } };
+			await axios.post(`${SERVER_URL}/api/auth/authreset`, { rid }, config);
+		} catch (err) {
 			setIsValid(false);
-		});
+		}
 	}, [resetToken, rid]);
+
+	useEffect(() => authResetToken(), [authResetToken]);
 
 	useEffect(() => {
 		if (!isValid) {
@@ -48,42 +52,36 @@ function AccountResetPanel() {
 		}
 	}, [history, isValid]);
 
-	const resetPass = (e) => {
-		e.preventDefault();
-
-		resetErrors();
-
-		axios
-			.put(`${SERVER_URL}/api/auth/reset`, {
+	const resetPass = async (e) => {
+		try {
+			e.preventDefault();
+			resetErrors();
+			await axios.put(`${SERVER_URL}/api/auth/reset`, {
 				rid: rid,
 				password: newPassRef.current.value,
 				repeatedPassword: repeatPassRef.current.value,
-			})
-			.then((res) => {
-				returnHome();
-			})
-			.catch((err) => {
-				if (err.response) {
-					if (err.response.status === CREDENTIALS_ERROR_CODE) {
-						const errData = err.response.data.errors;
-						let passErrMsgSet = false;
-						for (let i = 0; i < errData.length; i++) {
-							if (errData[i].param === "repeatedPassword") {
-								setRepeatPassFlag(true);
-							} else if (errData[i].param === "password" && !passErrMsgSet) {
-								// take only first password error message
-								passErrMsgSet = true;
-								setPasswordFlag(true);
-							}
-						}
-					} else if (err.response.status === UNAUTH_ERROR_CODE) {
-						setUnauthFlag(true);
-						setUnauthError(err.response.data.message);
-					} else {
-						setGeneralFlag(true);
-					}
-				}
 			});
+			returnHome();
+		} catch (err) {
+			if (err.response && err.response.status === CREDENTIALS_ERROR_CODE) {
+				const errors = err.response.data.errors;
+				let passErrMsgSet = false;
+				errors.forEach((error) => {
+					if (error.param === "repeatedPassword") {
+						setRepeatPassFlag(true);
+					} else if (error.param === "password" && !passErrMsgSet) {
+						// take only first password error message
+						passErrMsgSet = true;
+						setPasswordFlag(true);
+					}
+				});
+			} else if (err.response && err.response.status === UNAUTH_ERROR_CODE) {
+				setUnauthFlag(true);
+				setUnauthError(err.response.data.message);
+			} else {
+				setGeneralFlag(true);
+			}
+		}
 	};
 
 	const returnHome = () => {
