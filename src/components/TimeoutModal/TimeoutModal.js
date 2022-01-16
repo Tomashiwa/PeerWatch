@@ -20,7 +20,7 @@ function TimeoutModal({ isOpen, closeCallback }) {
 	useEffect(() => {
 		const startTimer = (duration) => {
 			let timeLeft = duration;
-			let timer = setInterval(() => {
+			const timer = setInterval(() => {
 				timeLeft--;
 				if (timeLeft < 0) {
 					history.push("/");
