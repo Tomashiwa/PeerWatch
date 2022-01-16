@@ -80,65 +80,70 @@ function Room() {
 	};
 
 	// Guide user to join room, retrieve room's info and connect to its sockets
-	useEffect(() => {
-		let newChatSocket = null;
-		let newVideoSocket = null;
+	const enterRoom = useCallback(
+		async (newUsers) => {
+			try {
+				// Add user to room
+				await axios.post(`${SERVER_URL}/api/rooms/join`, {
+					userId: userInfo.userId,
+					roomId: id,
+				});
 
-		const getUsers = axios.get(`${SERVER_URL}/api/rooms/${id}/users`);
-		const getCapacityCount = axios.get(`${SERVER_URL}/api/rooms/${id}/count`);
-
-		Promise.all([getUsers, getCapacityCount])
-			.then((res) => {
-				const usersFound = res[0].data;
-				const userIds = usersFound.map((entry) => entry.userId);
-				const { capacity, count } = res[1].data;
-
-				if (userIds.includes(userInfo.userId)) {
-					history.push(`/room/${id}/alreadyin`);
-				} else if (count && capacity && count >= capacity) {
-					history.push(`/room/${id}/full`);
-				} else {
-					axios
-						.post(`${SERVER_URL}/api/rooms/join`, {
-							userId: userInfo.userId,
-							roomId: id,
-						})
-						.then((joinRes) => {
-							// Retrieve room info
-							axios.get(`${SERVER_URL}/api/rooms/${id}`).then((roomRes) => {
-								let newRoomInfo = roomRes.data.room;
-								if (!newRoomInfo.url || newRoomInfo.url.length === 0) {
-									newRoomInfo.url = FALLBACK_VID;
-								}
-								setRoomInfo(roomRes.data.room);
-							});
-
-							// Setup sockets
-							newChatSocket = io(`${SERVER_URL}/chat`);
-							newVideoSocket = io(`${SERVER_URL}/video`, {
-								query: { userId: userInfo.userId },
-							});
-							setChatSocket(newChatSocket);
-							setVideoSocket(newVideoSocket);
-
-							setUsers(usersFound);
-						})
-						.catch((err) => {
-							history.push("/room_notfound");
-						});
+				// Retrieve room info
+				const res = await axios.get(`${SERVER_URL}/api/rooms/${id}`);
+				let newRoomInfo = res.data.room;
+				if (!newRoomInfo.url || newRoomInfo.url.length === 0) {
+					newRoomInfo.url = FALLBACK_VID;
 				}
-			})
-			.catch((err) => {
-				history.push("/room_notfound");
-			});
+				setRoomInfo(newRoomInfo);
 
-		return () => {
-			if (newChatSocket && newVideoSocket) {
-				newChatSocket.disconnect();
-				newVideoSocket.disconnect();
+				// Connect to room via sockets
+				const newChatSocket = io(`${SERVER_URL}/chat`);
+				const newVideoSocket = io(`${SERVER_URL}/video`, {
+					query: { userId: userInfo.userId },
+				});
+				setChatSocket(newChatSocket);
+				setVideoSocket(newVideoSocket);
+
+				// Update local list of users
+				setUsers(newUsers);
+
+				// Callback to disconnect sockets
+				return () => {
+					if (newChatSocket && newVideoSocket) {
+						newChatSocket.disconnect();
+						newVideoSocket.disconnect();
+					}
+				};
+			} catch (err) {
+				history.push("/room_notfound");
 			}
-		};
-	}, [id, userInfo, history]);
+		},
+		[id, history, userInfo.userId]
+	);
+	const joinRoom = useCallback(async () => {
+		try {
+			const getUsers = axios.get(`${SERVER_URL}/api/rooms/${id}/users`);
+			const getCapacityCount = axios.get(`${SERVER_URL}/api/rooms/${id}/count`);
+			const res = await Promise.all([getUsers, getCapacityCount]);
+
+			const users = res[0].data;
+			const userIds = users.map((entry) => entry.userId);
+			const { capacity, count } = res[1].data;
+
+			if (userIds.includes(userInfo.userId)) {
+				history.push(`/room/${id}/alreadyin`);
+			} else if (count && capacity && count >= capacity) {
+				history.push(`/room/${id}/full`);
+			} else {
+				return await enterRoom(users);
+			}
+		} catch (err) {
+			history.push("/room_notfound");
+		}
+	}, [id, history, userInfo.userId, enterRoom]);
+
+	useEffect(joinRoom, [joinRoom]);
 
 	// Tag socket ID with user's ID
 	useEffect(() => {
@@ -149,22 +154,25 @@ function Room() {
 
 	// Refresh the list of users and settings
 	const updateUserList = useCallback(
-		(userList, hostId) => {
-			axios
-				.get(`${SERVER_URL}/api/rooms/${id}/users`)
-				.then((res) => {
-					const newUsers = res.data.filter((user) => userList.includes(user.userId));
-					for (let i = 0; i < newUsers.length; i++) {
-						newUsers[i] = { ...newUsers[i], isHost: newUsers[i].userId === hostId };
-						if (newUsers[i].userId === userInfo.userId) {
-							const currUser = newUsers.splice(i, 1)[0];
-							newUsers.unshift(currUser);
-							setUser(currUser);
-						}
+		async (userList, hostId) => {
+			try {
+				const res = await axios.get(`${SERVER_URL}/api/rooms/${id}/users`);
+
+				const newUsers = res.data.filter((user) => userList.includes(user.userId));
+				newUsers.forEach((user, i) => {
+					newUsers[i] = { ...user, isHost: user.userId === hostId };
+					// Shift current user to the 1st in the List
+					if (user.userId === userInfo.userId) {
+						const currUser = newUsers.splice(i, 1)[0];
+						newUsers.unshift(currUser);
+						setUser(currUser);
 					}
-					setUsers(newUsers);
-				})
-				.catch((err) => console.log(err));
+				});
+
+				setUsers(newUsers);
+			} catch (err) {
+				console.error(err);
+			}
 		},
 		[setUsers, userInfo, id]
 	);
