@@ -22,42 +22,40 @@ function LoginPanel({ successCallback, toRegisterCallback, toRecoveryCallback })
 	const [isLoading, setIsLoading] = useState(false);
 	const { setUserInfo } = useContext(UserContext);
 
-	const login = (e) => {
-		e.preventDefault();
+	const login = async (e) => {
+		try {
+			e.preventDefault();
 
-		setIsLoading(true);
-		setGeneralFlag(false);
+			setIsLoading(true);
+			setGeneralFlag(false);
 
-		axios
-			.post(`${SERVER_URL}/api/auth/login`, {
+			const res = await axios.post(`${SERVER_URL}/api/auth/login`, {
 				email: emailRef.current.value,
 				password: passRef.current.value,
-			})
-			.then((res) => {
-				setIsLoading(false);
-
-				// Add to context
-				const newUserInfo = {
-					userId: res.data.userId,
-					displayName: res.data.displayName,
-					email: res.data.email,
-					token: res.data.token,
-					isLoaded: true,
-				};
-				setUserInfo(newUserInfo);
-
-				// Add token to browser
-				localStorage.setItem("token", res.data.token);
-
-				successCallback();
-			})
-			.catch((err) => {
-				if (err.response) {
-					setIsLoading(false);
-					setGeneralFlag(true);
-					setGeneralError(err.response.data.message);
-				}
 			});
+
+			setIsLoading(false);
+
+			// Add to context
+			setUserInfo({
+				userId: res.data.userId,
+				displayName: res.data.displayName,
+				email: res.data.email,
+				token: res.data.token,
+				isLoaded: true,
+			});
+
+			// Add token to browser
+			localStorage.setItem("token", res.data.token);
+
+			successCallback();
+		} catch (err) {
+			if (err.response) {
+				setIsLoading(false);
+				setGeneralFlag(true);
+				setGeneralError(err.response.data.message);
+			}
+		}
 	};
 
 	return (
