@@ -155,18 +155,16 @@ function Room() {
 		async (userList, hostId) => {
 			try {
 				const res = await axios.get(`${SERVER_URL}/api/rooms/${id}/users`);
-
 				const newUsers = res.data.filter((user) => userList.includes(user.userId));
-				newUsers.forEach((user, i) => {
-					newUsers[i] = { ...user, isHost: user.userId === hostId };
+				newUsers.forEach((u, i) => {
+					newUsers[i] = { ...u, isHost: u.userId === hostId };
 					// Shift current user to the 1st in the List
-					if (user.userId === userInfo.userId) {
+					if (u.userId === userInfo.userId) {
 						const currUser = newUsers.splice(i, 1)[0];
 						newUsers.unshift(currUser);
 						setUser(currUser);
 					}
 				});
-
 				setUsers(newUsers);
 			} catch (err) {
 				console.error(err);
